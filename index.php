@@ -1,6 +1,24 @@
 <?php
-require __DIR__ . '/auth.php';
-$login = getUserLogin();
+if (!empty($_FILES['base'])) {
+    $file = $_FILES['base'];
+
+    $srcFileName = $file['name'];
+    $newFilePath = __DIR__ . '/uploads/' . $srcFileName;
+
+    $allowedExt = ['jpg', 'png'];
+    $extension = pathinfo($srcFileName, PATHINFO_EXTENSION);
+    if (!in_array($extension, $allowedExt)) {
+        $error = 'Download files with this extension is disable!';
+    } elseif ($file['error'] !== UPLOAD_ERR_OK) {
+        $error = 'Error while downloading file';
+    } elseif (file_exists($newFilePath)) {
+        $error = 'File with this name is already exist';
+    } elseif (!move_uploaded_file($file['tmp_name'], $newFilePath)) {
+        $error = 'Error while downloading file';
+    } else {
+        $result = '/uploads/' . $srcFileName;
+    }
+}
 ?>
 
 <!doctype html>
@@ -10,15 +28,17 @@ $login = getUserLogin();
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Main</title>
+    <title>File Downloading</title>
 </head>
 <body>
-<?php if ($login === null): ?>
-    <a href="login.php">Please, register/auth your account</a>
-<?php else: ?>
-    <p>Welcome to our service, <?= $login ?></p>
-    <br>
-    <a href="logout.php">Exit</a>
-<?php endif; ?>
+<?php if(!empty($error)):?>
+<?=$error?>
+<?php elseif(!empty($result)):?>
+<?=$result?>
+<?php endif;?>
+<form action="index.php" method="post" enctype="multipart/form-data">
+    <input type="file" name="base">
+    <input type="submit">
+</form>
 </body>
 </html>
